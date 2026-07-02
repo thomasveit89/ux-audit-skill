@@ -1,0 +1,29 @@
+{
+  "name": "ux-audit-skill",
+  "version": "1.0.0",
+  "description": "A Claude Code skill that audits any website, app, or UI against 102 UX laws, cognitive biases, and heuristics.",
+  "type": "module",
+  "scripts": {
+    "install-skill": "node scripts/install.mjs"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-skill",
+    "ux",
+    "ux-audit",
+    "design",
+    "cognitive-bias",
+    "heuristics"
+  ],
+  "author": "Thomas Veit",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasveit89/ux-audit-skill.git"
+  },
+  "homepage": "https://github.com/thomasveit89/ux-audit-skill#readme",
+  "bugs": "https://github.com/thomasveit89/ux-audit-skill/issues",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
