@@ -60,6 +60,18 @@ node scripts/install.mjs
 
 That's it. The skill is now available in every Claude Code session.
 
+### Optional: live-browser audits via Playwright MCP
+
+By default, URL audits are done via a text fetch of the page — good for structure and copy, but blind to actual rendering (real contrast, real default vs. interacted states, mobile layout).
+
+Installing the [Playwright MCP server](https://playwright.dev/docs/getting-started-mcp) lets the skill drive a real browser instead: it takes actual screenshots, reads the accessibility tree, clicks into accordions/modals to see their real states, computes actual contrast ratios, and can check mobile viewports. Recommended, not required — the skill detects it automatically and falls back to the text fetch if it isn't installed.
+
+```bash
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
+Note: the first time it runs, Playwright downloads a Chromium binary (~150MB) to a global cache on your machine — a one-time cost shared across every tool that uses Playwright, not something this repo installs or manages.
+
 ---
 
 ## Usage
@@ -100,17 +112,17 @@ The principles include named laws (Fitts's Law, Hick's Law, Miller's Rule, Jakob
 ## How it works
 
 1. The skill reads `principles.json` (bundled, 102 principles)
-2. Fetches and analyzes the target via `WebFetch` or reads provided files
+2. Fetches and analyzes the target — via a live browser through Playwright MCP if installed, otherwise `WebFetch` — or reads provided files/screenshots
 3. Evaluates the UI against each contextually relevant principle
 4. Returns a structured markdown report with severity ratings and named citations
 
-The principles file is bundled so the skill works fully offline — no external API calls.
+The principles file is bundled so the core skill works fully offline — no external API calls. (The optional Playwright enhancement needs network access to fetch pages and, on first run, download a browser binary.)
 
 ---
 
 ## Roadmap
 
-- [ ] Playwright integration — automated screenshots with annotated violation overlays
+- [x] Playwright MCP integration — live-browser screenshots, accessibility snapshots, and real contrast checks (optional, see Installation)
 - [ ] HTML report output — shareable visual report with screenshots inline
 - [ ] Multi-page audit — crawl and audit full user flows, not just single pages
 - [ ] Severity scoring — numerical score per category and overall

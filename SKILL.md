@@ -29,7 +29,17 @@ This database contains 102 principles across 6 categories: `attention`, `decisio
 
 Based on what the user provided:
 
-**URL provided:** Use WebFetch to retrieve the page content. Take note of: navigation structure, CTAs, form design, copy, information hierarchy, interactive elements, onboarding flow. If the fetch fails (blocked, requires auth, or the content is JS-rendered and comes back empty), say so explicitly and ask the user for a screenshot instead of guessing.
+**URL provided, Playwright MCP available (preferred):** Check whether browser tools like `browser_navigate` / `browser_snapshot` are available (search for them if unsure). If so, use a real browser instead of a text fetch:
+- `browser_navigate` to the URL, then `browser_take_screenshot` for actual visual analysis (layout, color, spacing, typography) — this is real rendering, not a text approximation.
+- `browser_snapshot` for the accessibility tree — real roles, labels, and structure, not guessed from HTML.
+- If the page has collapsible/interactive elements (accordions, tabs, modals, dropdowns), use `browser_click` to observe their actual default and post-interaction states rather than assuming from one screenshot.
+- Use `browser_evaluate` to compute real contrast ratios for key text/background pairs (inject a small WCAG contrast calculation) instead of eyeballing them.
+- Optionally `browser_resize` to a mobile viewport (e.g. 375×812) and re-screenshot to check responsive behavior, if relevant to the product.
+- Use `browser_console_messages` to catch JS errors that might be silently breaking an interaction.
+
+This is optional infrastructure — if the user hasn't set up the Playwright MCP server, don't ask them to. Fall back to the next option.
+
+**URL provided, no Playwright MCP:** Use WebFetch to retrieve the page content. Take note of: navigation structure, CTAs, form design, copy, information hierarchy, interactive elements, onboarding flow. If the fetch fails (blocked, requires auth, or the content is JS-rendered and comes back empty), say so explicitly and ask the user for a screenshot instead of guessing. Flag in the report (Step 5) that visual-category findings (contrast, spacing, actual image use) are unverified without rendered output.
 
 **Screenshot or image provided:** Analyze visually. Note layout, typography, color use, interactive element sizes, visual hierarchy, whitespace, and cognitive load.
 
@@ -39,7 +49,30 @@ Based on what the user provided:
 
 Build a mental model of the product: what it does, who it's for, and what the primary user flows are.
 
-## Step 3 — Systematic analysis
+## Step 3 — Gather context (skip what's already known)
+
+A generic audit misfires in two predictable ways: it penalizes deliberate design choices it has no way of knowing about (e.g. flagging a minimalist site for having no images), and it asserts things about behavior it only saw a snapshot of (e.g. calling a screenshot's state "the default" when it might be mid-interaction). This step exists to close both gaps cheaply, before analysis starts.
+
+First, check what you already know without asking:
+- What the user's own request already states (e.g. "audit my SaaS onboarding, I want more signups" already answers type and goal).
+- What's self-evident from the target itself (a checkout URL announces itself as e-commerce; a README may state the product's purpose).
+
+For whatever remains genuinely unclear, ask using the `AskUserQuestion` tool — at most the three questions below, skipping any already answered above. Every question must include a **"Skip / audit generically"** option so answering is never mandatory:
+
+1. **Type** — "What kind of thing is this?"
+   Options: Portfolio/personal site · Marketing/landing page · Product UI (app, dashboard, flow) · E-commerce · Skip / audit generically
+
+2. **Goal** — "What's the one thing you want a visitor to do here, if anything?"
+   Options: Contact/hire me · Sign up or buy · Read and understand · Just leave an impression · No specific action — informational · Skip / audit generically
+
+3. **Constraints** (multiSelect) — "Anything here that's deliberate and should be off-limits to generic best-practice critique?"
+   Options: Minimal by design (sparse content, no images) · Unconventional navigation is intentional · Simplicity valued over persuasion tactics · Nothing — audit it cold · Skip / audit generically
+
+If the user skips a question (or all of them), proceed with the audit anyway — just carry that gap into Step 5's report so the reader knows which findings are unfiltered generic best-practice rather than judged against their actual intent.
+
+Carry forward whatever context you end up with — declared or inferred — into Step 4 and Step 5.
+
+## Step 4 — Systematic analysis
 
 Work through each of the 6 categories. For each category, identify the 3–8 most relevant principles given what you know about this product. Then evaluate:
 
@@ -54,7 +87,13 @@ Work through each of the 6 categories. For each category, identify the 3–8 mos
 
 Don't force every principle onto every product. A B2B dashboard has different relevant principles than an e-commerce checkout. Use `appliesWhen` as your guide to filter for what's actually relevant.
 
-## Step 4 — Generate the audit report
+Apply the context gathered in Step 3:
+- **Type** narrows which categories/principles are in scope — don't evaluate checkout-abandonment principles on a portfolio, or portfolio-recall principles on a checkout flow.
+- **Declared constraints** override generic `do`/`dont` guidance. If the user told you sparse content or no images is intentional, don't raise Picture Superiority Effect (or similar) as a violation — at most note it as an acknowledged tradeoff, not a finding.
+- **No declared goal** means don't assume one. Don't penalize a design for lacking a prominent CTA if the user said there's no specific action they want — note the absence of a stated goal instead of inventing one.
+- **Screenshot-observed states are not defaults.** Never assert that what a screenshot shows (an expanded panel, a hover state, a filled form) is the default or resting state unless the user confirmed it. Either phrase the finding conditionally ("if this is the default state...") or leave it out.
+
+## Step 5 — Generate the audit report
 
 Output a structured markdown report in this format:
 
@@ -62,6 +101,10 @@ Output a structured markdown report in this format:
 
 # UX Audit: [Product/URL Name]
 *[Date] · Evaluated against 102 UX laws, cognitive biases, and heuristics*
+
+**Context:** [Type · Goal · Deliberate constraints, from Step 3 — or "Not provided — findings below reflect generic best practice and may not account for intentional design choices" if the user skipped]
+**Method:** [How the target was examined — e.g. "Live browser via Playwright MCP (screenshot, accessibility snapshot, computed contrast)" · "WebFetch text extraction — visual category unverified" · "User-provided screenshot" · "Source code review"]
+**Approach:** [1–3 sentences making the investigative reasoning visible, not just the findings. State which specific pages/flows were chosen for closer examination and why, tied explicitly to the declared goal/type — e.g. "Because the stated goal is lead generation, the homepage was checked for a clear path to conversion, then that path was followed to the Contact page to verify whether it actually converts." If no extra pages beyond the initial target were visited, say so plainly rather than omitting the line.]
 
 ## Summary
 | | |
@@ -124,6 +167,8 @@ Suggest 1–3 specific user research or testing approaches that would reveal iss
 
 ## Notes on this audit
 - **Caveat:** Static analysis can't fully replace user testing. Treat this as a directional diagnostic, not a definitive verdict.
+- **If context was skipped in Step 3:** add a line here noting the report wasn't filtered against the product's actual goals or intentional design choices, and that re-running with context (or answering the questions next time) would sharpen it.
+- **If a URL target was audited without Playwright MCP:** add one line noting that installing it (see README) would let future audits verify real contrast ratios, actual default/interaction states, and mobile rendering instead of relying on text extraction or a static screenshot. One sentence, not a pitch.
 - **Source data:** a curated library of 102 UX laws, cognitive biases, and heuristics, bundled with this skill. The same library is also available as [DESIGNSNACK: Laws & Patterns](https://apps.apple.com/us/app/designsnack-laws-patterns/id6754067995) on iOS, for studying these principles via flashcards and quizzes.
 
 ---
@@ -135,3 +180,4 @@ Suggest 1–3 specific user research or testing approaches that would reveal iss
 - Don't pad. 5 sharp findings beat 15 vague ones.
 - Rank by impact, not by how obvious the issue is.
 - If you can't see enough of the product to evaluate a category confidently, say so — don't guess.
+- Never mistake a snapshot for a spec. A screenshot shows one moment in time, not the product's behavior — don't declare something "the default" or "always happens" unless it was confirmed.
