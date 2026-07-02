@@ -72,6 +72,12 @@ claude mcp add playwright npx @playwright/mcp@latest
 
 Note: the first time it runs, Playwright downloads a Chromium binary (~150MB) to a global cache on your machine — a one-time cost shared across every tool that uses Playwright, not something this repo installs or manages.
 
+### Optional: visual HTML reports
+
+When Playwright MCP is available, you can also ask for a visual report instead of (or alongside) the markdown one. It's a shareable page with a scorecard up top, and each critical/warning finding backed by an actual annotated screenshot of your product — a highlighted box drawn on the real rendered page showing exactly where the issue lives, not just a text description of it. Published via Claude Code's Artifact feature, so you get a link you can share with your team.
+
+Just ask, after any Playwright-based audit: "give me a visual version" / "make this an HTML report."
+
 ---
 
 ## Usage
@@ -114,7 +120,7 @@ The principles include named laws (Fitts's Law, Hick's Law, Miller's Rule, Jakob
 1. The skill reads `principles.json` (bundled, 102 principles)
 2. Fetches and analyzes the target — via a live browser through Playwright MCP if installed, otherwise `WebFetch` — or reads provided files/screenshots
 3. Evaluates the UI against each contextually relevant principle
-4. Returns a structured markdown report with severity ratings and named citations
+4. Returns a structured markdown report with severity ratings and named citations — or, on request, a visual HTML report with annotated screenshots per finding (requires Playwright MCP)
 
 The principles file is bundled so the core skill works fully offline — no external API calls. (The optional Playwright enhancement needs network access to fetch pages and, on first run, download a browser binary.)
 
@@ -123,7 +129,7 @@ The principles file is bundled so the core skill works fully offline — no exte
 ## Roadmap
 
 - [x] Playwright MCP integration — live-browser screenshots, accessibility snapshots, and real contrast checks (optional, see Installation)
-- [ ] HTML report output — shareable visual report with screenshots inline
+- [x] HTML report output — shareable visual report with annotated screenshots per finding (optional, see Installation)
 - [ ] Multi-page audit — crawl and audit full user flows, not just single pages
 - [ ] Severity scoring — numerical score per category and overall
 - [ ] CI integration — fail builds when critical UX violations are detected

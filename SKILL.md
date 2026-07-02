@@ -181,3 +181,24 @@ Suggest 1–3 specific user research or testing approaches that would reveal iss
 - Rank by impact, not by how obvious the issue is.
 - If you can't see enough of the product to evaluate a category confidently, say so — don't guess.
 - Never mistake a snapshot for a spec. A screenshot shows one moment in time, not the product's behavior — don't declare something "the default" or "always happens" unless it was confirmed.
+
+---
+
+## Step 6 — Optional: visual HTML report
+
+After delivering the markdown report, offer a visual HTML version via the `Artifact` tool — but only when Playwright MCP was actually used. In WebFetch-fallback or screenshot-only modes there's no live page left to annotate, so skip this step entirely rather than faking it.
+
+If the user wants it:
+
+1. **Load the `artifact-design` skill first** — required before writing to Artifact.
+2. **Scorecard header** — the same Critical/Warning/Pass/Principles-evaluated counts from the markdown report, as stat tiles instead of a table.
+3. **Annotated screenshot per finding** — for each 🔴/🟡 finding that points at a specific visible element:
+   - Re-navigate to the page/state the finding came from.
+   - Locate the element and get its real bounding box (`browser_snapshot` with `boxes: true`, or `getBoundingClientRect` via `browser_evaluate`) — never estimate coordinates.
+   - Inject a highlight (outline/box-shadow) onto that exact element via `browser_evaluate` so the browser draws it on the real rendered layout.
+   - Capture with `browser_take_screenshot` (`fullPage: true` if the element is below the fold, e.g. to show it's buried).
+   - Base64-encode the PNG and embed it as a `data:image/png;base64,...` URI — required for Artifact's self-contained CSP, and avoids external hosting.
+4. **Severity-coded cards** — one card per finding, colored border/badge matching 🔴/🟡/✅, with the annotated screenshot embedded next to the existing What's happening / Why it matters / Fix text.
+5. Publish with the `Artifact` tool using a stable file path so re-runs redeploy the same URL.
+
+Keep this lean: no charts, no collapsible accordions, no separate findings table — just the scorecard plus annotated, color-coded finding cards.
