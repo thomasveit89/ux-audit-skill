@@ -92,7 +92,6 @@ The principles file is bundled so the core skill works fully offline — no exte
 - [x] HTML report output — shareable visual report with annotated screenshots per finding (optional, see Installation)
 - [ ] Multi-page audit — crawl and audit full user flows, not just single pages
 - [ ] Severity scoring — numerical score per category and overall
-- [ ] CI integration — fail builds when critical UX violations are detected
 
 ---
 
