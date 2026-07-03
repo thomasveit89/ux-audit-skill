@@ -8,46 +8,6 @@ Built on the same 102-principle library as my iOS app, [DESIGNSNACK: Laws & Patt
 
 ---
 
-## Example output
-
-Real output from running this skill against the [DESIGNSNACK App Store listing](https://apps.apple.com/us/app/designsnack-laws-patterns/id6754067995) itself:
-
-```
-# UX Audit: DESIGNSNACK — Laws & Patterns (App Store listing)
-July 2026 · Evaluated against 102 UX laws, cognitive biases, and heuristics
-
-## Summary
-🔴 Critical issues      0
-🟡 Warnings             1
-✅ Strengths noted      2
-
-Top priority: Lead with the outcome, not the inventory — "100+ UX
-principles & laws" tells visitors what's inside, not why it's worth
-their time.
-
-## 🟡 Warnings
-
-### Aha! Moment · attention
-> "The moment users comprehend and appreciate the core value of a product."
-
-What's happening: The subtitle states quantity ("100+ UX principles
-& laws") rather than outcome. A design student scanning the App
-Store can't tell in one glance whether this saves them from Googling
-laws mid-interview-prep, or is just a static glossary.
-
-Fix: Pair the count with a concrete outcome, e.g. "100+ UX laws —
-ace your next design review or interview."
-
-## ✅ What's Working
-
-- Free-to-try with a $2.99 unlock lowers the commitment barrier
-  before asking for payment.
-- "No tracking or ads" is stated plainly — a clear trust signal for
-  a professional/education-focused audience.
-```
-
----
-
 ## Installation
 
 Requires Node.js 18+.
