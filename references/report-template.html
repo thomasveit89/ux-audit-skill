@@ -1,0 +1,478 @@
+<!--
+  ux-audit visual HTML report — house template.
+
+  This file is the fixed design system for every visual report the ux-audit
+  skill produces. Do NOT redesign this from scratch per audit — copy this
+  file, keep the CSS and class structure verbatim, and only swap the content
+  marked with [BRACKETS]. This is what keeps reports consistent across runs.
+
+  Structure per finding severity:
+    - Critical and Warning findings each get a .finding card (colored left
+      border + badge matching severity). Include a .figure screenshot block
+      only when the finding points at a specific visible element.
+    - Strengths go in a single .strengths-list (no screenshots).
+    - Quick wins / go-deeper suggestions go in .plain-list blocks.
+
+  Repeat .finding / .strengths-list li / .plain-list li blocks as needed —
+  there is no fixed count. Delete the Critical section entirely if there are
+  zero critical findings (don't leave an empty heading).
+
+  No italics anywhere in this template — keep all type upright.
+-->
+<title>[REPORT_TITLE]</title>
+<style>
+  :root {
+    --ink: #1c2024;
+    --paper: #f2f1ec;
+    --paper-raised: #ffffff;
+    --accent: #12615a;
+    --accent-soft: #e3ede9;
+    --critical: #b3282d;
+    --critical-soft: #f7e6e5;
+    --warning: #a66a1e;
+    --warning-soft: #f6ede0;
+    --good: #2f6f4e;
+    --good-soft: #e7f0ea;
+    --muted: #5b6570;
+    --hairline: #dcdcd6;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    margin: 0;
+    padding: 56px 24px 96px;
+  }
+
+  .page {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  a { color: var(--accent); }
+  code {
+    font-family: var(--mono);
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.88em;
+  }
+
+  /* ---------- Masthead ---------- */
+
+  .masthead { display: flex; flex-direction: column; gap: 18px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(32px, 4.5vw, 44px);
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-family: var(--sans);
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  .meta-panel {
+    border: 1px solid var(--hairline);
+    background: var(--paper-raised);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 14px;
+  }
+
+  .meta-row { display: grid; grid-template-columns: 90px 1fr; gap: 14px; }
+
+  .meta-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding-top: 2px;
+  }
+
+  .meta-value { color: var(--ink); }
+
+  /* ---------- Scorecard ---------- */
+
+  .scorecard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  .stat {
+    background: var(--paper-raised);
+    border: 1px solid var(--hairline);
+    border-top: 3px solid var(--stat-color, var(--ink));
+    border-radius: 6px;
+    padding: 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stat-num {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 30px;
+    font-weight: 600;
+    color: var(--stat-color, var(--ink));
+  }
+
+  .stat-label { font-size: 12.5px; color: var(--muted); line-height: 1.3; }
+
+  .top-priority {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    font-size: 15px;
+  }
+
+  .top-priority strong {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+
+  /* ---------- Section headings ---------- */
+
+  .section { display: flex; flex-direction: column; gap: 20px; }
+
+  .section-heading {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
+    margin: 0 0 4px;
+    font-weight: 700;
+  }
+
+  /* ---------- Finding cards ---------- */
+
+  .finding {
+    background: var(--paper-raised);
+    border: 1px solid var(--hairline);
+    border-left: 6px solid var(--sev-color, var(--ink));
+    border-radius: 4px;
+    padding: 22px 26px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .finding-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .finding-title { font-family: var(--serif); font-size: 21px; font-weight: 600; margin: 0; }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--sev-soft, var(--accent-soft));
+    color: var(--sev-color, var(--accent));
+    white-space: nowrap;
+    font-weight: 700;
+  }
+
+  .category-tag { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+  .oneliner {
+    font-family: var(--sans);
+    font-size: 15.5px;
+    color: var(--ink);
+    border-left: 2px solid var(--hairline);
+    padding-left: 12px;
+    margin: 0;
+  }
+
+  .finding h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 4px 0 -6px;
+    font-weight: 700;
+  }
+
+  .finding p { font-size: 15px; line-height: 1.62; margin: 0; color: var(--ink); }
+
+  .figure { display: flex; flex-direction: column; gap: 6px; margin: 4px 0; }
+  .figure img { max-width: 100%; display: block; border: 1px solid var(--hairline); border-radius: 6px; }
+  .figure-caption { font-family: var(--mono); font-size: 11.5px; color: var(--muted); letter-spacing: 0.01em; }
+  .figure-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .fix {
+    margin-top: 4px;
+    padding: 14px 16px;
+    background: var(--good-soft);
+    border-radius: 6px;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  .fix strong {
+    color: var(--good);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  /* ---------- Strengths ---------- */
+
+  .strengths-list {
+    background: var(--paper-raised);
+    border: 1px solid var(--hairline);
+    border-left: 6px solid var(--good);
+    border-radius: 4px;
+    padding: 20px 26px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    list-style: none;
+  }
+  .strengths-list li { position: relative; padding-left: 22px; font-size: 15px; line-height: 1.55; }
+  .strengths-list li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--good); font-weight: 700; }
+  .strengths-list strong { color: var(--ink); }
+
+  /* ---------- Quick wins / go-deeper ---------- */
+
+  .plain-list {
+    background: var(--paper-raised);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 20px 26px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    list-style: none;
+  }
+  .plain-list li { position: relative; padding-left: 22px; font-size: 15px; line-height: 1.55; }
+  .plain-list li::before { content: "→"; position: absolute; left: 0; top: 0; color: var(--accent); font-weight: 700; }
+
+  /* ---------- Footer ---------- */
+
+  .footer-note {
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px solid var(--hairline);
+    padding-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .footer-note .callout {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 12px 16px;
+  }
+
+  @media (max-width: 640px) {
+    .scorecard { grid-template-columns: repeat(2, 1fr); }
+    .figure-pair { grid-template-columns: 1fr; }
+    h1 { font-size: 28px; }
+    body { padding: 32px 16px 64px; }
+    .finding { padding: 18px 18px 22px; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">UX Audit Report</div>
+    <h1>[SITE_NAME]</h1>
+    <p class="subtitle">[site-url.com] · evaluated against 102 UX laws, cognitive biases, and heuristics</p>
+
+    <div class="meta-panel">
+      <div class="meta-row">
+        <div class="meta-label">Date</div>
+        <div class="meta-value">[YYYY-MM-DD]</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-label">Context</div>
+        <div class="meta-value">[Type of product · stated goal · any declared constraints from Step 3]</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-label">Method</div>
+        <div class="meta-value">[Live browser via Playwright MCP — screenshots, accessibility snapshot, computed contrast, etc.]</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-label">Approach</div>
+        <div class="meta-value">[1-3 sentences on which pages/flows were checked and why, tied to the goal]</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scorecard">
+    <div class="stat" style="--stat-color: var(--critical)">
+      <div class="stat-num">[N]</div>
+      <div class="stat-label">Critical issues</div>
+    </div>
+    <div class="stat" style="--stat-color: var(--warning)">
+      <div class="stat-num">[N]</div>
+      <div class="stat-label">Warnings</div>
+    </div>
+    <div class="stat" style="--stat-color: var(--good)">
+      <div class="stat-num">[N]</div>
+      <div class="stat-label">Strengths noted</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">[~N]</div>
+      <div class="stat-label">Principles evaluated</div>
+    </div>
+  </div>
+
+  <div class="top-priority">
+    <strong>Top priority</strong>
+    [One sentence: the single most impactful fix]
+  </div>
+
+  <!-- ===================== CRITICAL (omit section entirely if count is 0) ===================== -->
+
+  <div class="section">
+    <h2 class="section-heading">Critical Issues</h2>
+
+    <div class="finding" style="--sev-color: var(--critical); --sev-soft: var(--critical-soft)">
+      <div class="finding-head">
+        <h3 class="finding-title">[Principle Title]</h3>
+        <span class="badge">Critical</span>
+      </div>
+      <span class="category-tag">[category]</span>
+      <p class="oneliner">"[oneLiner from principles.json]"</p>
+
+      <!-- Optional — only when the finding points at a specific visible element -->
+      <div class="figure">
+        <img src="data:image/png;base64,[...]" alt="[what the screenshot shows and what's highlighted]">
+        <div class="figure-caption">[short caption, e.g. what the red outline marks]</div>
+      </div>
+
+      <h4>What's happening</h4>
+      <p>[Concrete description — where/what in the UI, verified specifics]</p>
+
+      <h4>Why it matters</h4>
+      <p>[Connect to user impact]</p>
+
+      <div class="fix"><strong>Fix</strong>[Specific, actionable recommendation]</div>
+    </div>
+
+    <!-- repeat .finding for each critical issue -->
+  </div>
+
+  <!-- ===================== WARNINGS ===================== -->
+
+  <div class="section">
+    <h2 class="section-heading">Warnings</h2>
+
+    <div class="finding" style="--sev-color: var(--warning); --sev-soft: var(--warning-soft)">
+      <div class="finding-head">
+        <h3 class="finding-title">[Principle Title]</h3>
+        <span class="badge">Warning</span>
+      </div>
+      <span class="category-tag">[category]</span>
+      <p class="oneliner">"[oneLiner]"</p>
+
+      <div class="figure">
+        <img src="data:image/png;base64,[...]" alt="[description]">
+        <div class="figure-caption">[caption]</div>
+      </div>
+
+      <h4>What's happening</h4>
+      <p>[description]</p>
+
+      <h4>Why it matters</h4>
+      <p>[impact]</p>
+
+      <div class="fix"><strong>Fix</strong>[recommendation]</div>
+    </div>
+
+    <!-- repeat .finding for each warning -->
+  </div>
+
+  <!-- ===================== STRENGTHS ===================== -->
+
+  <div class="section">
+    <h2 class="section-heading">What's Working</h2>
+    <ul class="strengths-list">
+      <li><strong>[Principle Title]:</strong> [one sentence on what's done right]</li>
+      <!-- repeat li for each strength, 2-5 total, no padding -->
+    </ul>
+  </div>
+
+  <!-- ===================== QUICK WINS ===================== -->
+
+  <div class="section">
+    <h2 class="section-heading">Quick Wins</h2>
+    <ul class="plain-list">
+      <li>[Actionable, shippable-this-week item]</li>
+      <!-- 3-5 items -->
+    </ul>
+  </div>
+
+  <!-- ===================== GO DEEPER ===================== -->
+
+  <div class="section">
+    <h2 class="section-heading">If You Want to Go Deeper</h2>
+    <ul class="plain-list">
+      <li><strong>[Method name]:</strong> [what it would reveal that this audit can't]</li>
+      <!-- 1-3 items -->
+    </ul>
+  </div>
+
+  <div class="footer-note">
+    <!-- Optional — only if something was investigated and ruled out during the audit -->
+    <div class="callout">[Note on any false leads investigated and ruled out, e.g. capture-tooling artifacts]</div>
+    <p><strong>Caveat:</strong> static analysis can't fully replace user testing — treat this as a directional diagnostic, not a definitive verdict.</p>
+    <p>Source: a curated library of 102 UX laws, cognitive biases, and heuristics. Also available as <a href="https://apps.apple.com/us/app/designsnack-laws-patterns/id6754067995">DESIGNSNACK: Laws &amp; Patterns</a> on iOS.</p>
+  </div>
+
+</div>
